@@ -104,129 +104,6 @@ const GameGrid = React.memo(({ grid }: { grid: (string | null)[][] }) => (
   </div>
 ));
 
-const TouchControls = ({ 
-  onMoveLeft, 
-  onMoveRight, 
-  onRotate, 
-  onSoftDrop, 
-  onHardDrop,
-  isGameActive 
-}: {
-  onMoveLeft: () => void;
-  onMoveRight: () => void;
-  onRotate: () => void;
-  onSoftDrop: (dropping: boolean) => void;
-  onHardDrop: () => void;
-  isGameActive: boolean;
-}) => {
-  if (!isGameActive) return null;
-
-  const buttonStyle = {
-    padding: '1rem',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: '0.5rem',
-    color: 'white',
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    userSelect: 'none' as const,
-    touchAction: 'manipulation' as const,
-    minWidth: '60px',
-    minHeight: '60px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
-  const activeStyle = {
-    ...buttonStyle,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    transform: 'scale(0.95)',
-  };
-
-  return (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1rem',
-      zIndex: 1000,
-      pointerEvents: 'auto'
-    }}>
-      {/* Top row - Rotate and Hard Drop */}
-      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-        <button
-          style={buttonStyle}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            onRotate();
-          }}
-          onClick={onRotate}
-        >
-          ↻
-        </button>
-        <button
-          style={buttonStyle}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            onHardDrop();
-          }}
-          onClick={onHardDrop}
-        >
-          ⬇⬇
-        </button>
-      </div>
-      
-      {/* Bottom row - Movement and Soft Drop */}
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <button
-          style={buttonStyle}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            onMoveLeft();
-          }}
-          onClick={onMoveLeft}
-        >
-          ←
-        </button>
-        
-        <button
-          style={buttonStyle}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            onSoftDrop(true);
-          }}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            onSoftDrop(false);
-          }}
-          onMouseDown={() => onSoftDrop(true)}
-          onMouseUp={() => onSoftDrop(false)}
-          onMouseLeave={() => onSoftDrop(false)}
-        >
-          ↓
-        </button>
-        
-        <button
-          style={buttonStyle}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            onMoveRight();
-          }}
-          onClick={onMoveRight}
-        >
-          →
-        </button>
-      </div>
-    </div>
-  );
-};
-
 type BlockType = {
     x: number;
     y: number;
@@ -298,6 +175,7 @@ const ColorisGame = () => {
   // Touch gesture state
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
+  const [showTouchFeedback, setShowTouchFeedback] = useState(false);
 
   // --- Core Game Logic ---
 
@@ -511,6 +389,7 @@ const ColorisGame = () => {
     const touch = e.touches[0];
     setTouchStart({ x: touch.clientX, y: touch.clientY });
     setTouchEnd(null);
+    setShowTouchFeedback(true);
   }, [gameStarted, gameOver]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
@@ -529,13 +408,14 @@ const ColorisGame = () => {
     const deltaX = touchEnd.x - touchStart.x;
     const deltaY = touchEnd.y - touchStart.y;
     
-    const minSwipeDistance = 50;
+    // More sensitive swipe detection for better mobile experience
+    const minSwipeDistance = 30; // Reduced from 50 for more responsive controls
     const absDeltaX = Math.abs(deltaX);
     const absDeltaY = Math.abs(deltaY);
 
-    // Determine swipe direction
+    // Determine swipe direction with improved logic
     if (absDeltaX > absDeltaY && absDeltaX > minSwipeDistance) {
-      // Horizontal swipe
+      // Horizontal swipe - move left/right
       if (deltaX > 0) {
         moveBlock(1); // Swipe right
       } else {
@@ -544,18 +424,30 @@ const ColorisGame = () => {
     } else if (absDeltaY > absDeltaX && absDeltaY > minSwipeDistance) {
       // Vertical swipe
       if (deltaY > 0) {
-        hardDrop(); // Swipe down - hard drop
+        // Swipe down - check distance for soft vs hard drop
+        if (absDeltaY > 80) {
+          hardDrop(); // Long swipe down - hard drop
+        } else {
+          // Short swipe down - soft drop (single step)
+          const nextPos = { ...currentBlock!, y: currentBlock!.y + 1 };
+          if (currentBlock && isValidMove(nextPos, grid)) {
+            setCurrentBlock(nextPos);
+          }
+        }
       } else {
         rotateBlock(); // Swipe up - rotate
       }
-    } else {
-      // Tap (small movement) - rotate
+    } else if (absDeltaX < 20 && absDeltaY < 20) {
+      // Tap (very small movement) - rotate
       rotateBlock();
     }
 
     setTouchStart(null);
     setTouchEnd(null);
-  }, [touchStart, touchEnd, gameStarted, gameOver, moveBlock, rotateBlock, hardDrop]);
+    
+    // Hide touch feedback after a short delay
+    setTimeout(() => setShowTouchFeedback(false), 200);
+  }, [touchStart, touchEnd, gameStarted, gameOver, moveBlock, rotateBlock, hardDrop, currentBlock, grid, isValidMove]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -632,9 +524,31 @@ const ColorisGame = () => {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              style={{ touchAction: 'none' }} // Prevent default touch behaviors
+              style={{ 
+                touchAction: 'none', // Prevent default touch behaviors
+                position: 'relative'
+              }}
             >
                 <GameGrid grid={displayGrid} />
+                
+                {/* Touch feedback indicator */}
+                {isTouchDevice && showTouchFeedback && touchStart && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: touchStart.x - 20,
+                      top: touchStart.y - 20,
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                      border: '2px solid rgba(255, 255, 255, 0.6)',
+                      pointerEvents: 'none',
+                      animation: 'touchPulse 0.2s ease-out',
+                      zIndex: 10
+                    }}
+                  />
+                )}
                 {(!gameStarted || gameOver) && (
                     <div style={{
                         position: 'absolute',
@@ -760,11 +674,15 @@ const ColorisGame = () => {
                                 <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>Tap / Swipe ↑</span>
                             </li>
                             <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Soft Drop</span> 
+                                <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>Short Swipe ↓</span>
+                            </li>
+                            <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span>Hard Drop</span> 
-                                <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>Swipe ↓</span>
+                                <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>Long Swipe ↓</span>
                             </li>
                             <li style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)' }}>
-                                Use touch buttons for precise control
+                                Swipe anywhere on the game area
                             </li>
                         </ul>
                     ) : (
@@ -808,18 +726,6 @@ const ColorisGame = () => {
                 </div>
             </div>
         </div>
-        
-        {/* Touch Controls for mobile devices */}
-        {isTouchDevice && (
-          <TouchControls
-            onMoveLeft={() => moveBlock(-1)}
-            onMoveRight={() => moveBlock(1)}
-            onRotate={rotateBlock}
-            onSoftDrop={(dropping) => setIsDropping(dropping)}
-            onHardDrop={hardDrop}
-            isGameActive={gameStarted && !gameOver}
-          />
-        )}
     </div>
   );
 };
