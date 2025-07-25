@@ -27,102 +27,58 @@ const generateNewBlock = () => ({
 
 const WavyTitle = ({ text, ...props }: { text: string, className?: string, style?: React.CSSProperties }) => {
     const [time, setTime] = useState(0);
+    const [mounted, setMounted] = useState(false);
     
     useEffect(() => {
-        let animationFrameId: number;
-        const animate = (timestamp: number) => {
-            setTime(timestamp / 300); // Slower animation for better clarity
-            animationFrameId = requestAnimationFrame(animate);
-        };
-        animationFrameId = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(animationFrameId);
+        setMounted(true);
     }, []);
+    
+    useEffect(() => {
+        if (!mounted) return;
+        
+        const interval = setInterval(() => {
+            setTime(prev => prev + 0.1);
+        }, 50); // Update every 50ms for smooth animation
+        
+        return () => {
+            clearInterval(interval);
+        };
+    }, [mounted]);
+    
+    // Don't render animation until mounted (avoid hydration mismatch)
+    if (!mounted) {
+        return <h1 {...props}>{text}</h1>;
+    }
 
     return (
-        <div style={{
-            position: 'relative',
-            display: 'inline-block',
-            padding: '0.25em 0.5em',
-            marginBottom: props.style?.marginBottom || 0
-        }}>
-            {/* Shadow layer for depth */}
-            <h1 className={props.className} style={{
-                ...props.style,
-                position: 'absolute',
-                top: '4px',
-                left: '4px',
-                WebkitTextFillColor: 'rgba(0, 0, 0, 0.4)',
-                zIndex: 0,
-                filter: 'blur(3px)',
-                pointerEvents: 'none',
-                marginBottom: 0
-            }}>
-                {text.split('').map((char, index) => {
-                    const yOffset = Math.sin(time + index * 0.7) * 8;
-                    const xOffset = Math.cos(time * 0.5 + index * 0.5) * 3;
-                    const displayChar = char === ' ' ? '\u00A0' : char;
-                    return (
-                        <span 
-                            key={index} 
-                            style={{ 
-                                display: 'inline-block', 
-                                transform: `translateY(${yOffset}px) translateX(${xOffset}px)`
-                            }}
-                        >
-                            {displayChar}
-                        </span>
-                    );
-                })}
-            </h1>
-            
-            {/* Main title with bright colors */}
-            <h1 className={props.className} style={{
-                ...props.style,
-                position: 'relative',
-                zIndex: 1,
-                marginBottom: 0,
-                WebkitTextStroke: '1px rgba(0, 0, 0, 0.5)'
-            }}>
-                {text.split('').map((char, index) => {
-                    const yOffset = Math.sin(time + index * 0.7) * 8;
-                    const xOffset = Math.cos(time * 0.5 + index * 0.5) * 3;
-                    const displayChar = char === ' ' ? '\u00A0' : char;
-                    return (
-                        <span 
-                            key={index} 
-                            style={{ 
-                                display: 'inline-block', 
-                                transform: `translateY(${yOffset}px) translateX(${xOffset}px)`,
-                                textShadow: '0 0 8px rgba(255,255,255,0.7), 0 0 16px rgba(120,120,255,0.6)'
-                            }}
-                        >
-                            {displayChar}
-                        </span>
-                    );
-                })}
-            </h1>
-        </div>
+        <h1 {...props}>
+            {text.split('').map((char, index) => {
+                const yOffset = Math.sin(time + index * 0.7) * 10;
+                const displayChar = char === ' ' ? '\u00A0' : char;
+                return (
+                    <span key={index} style={{ display: 'inline-block', transform: `translateY(${yOffset}px)` }}>
+                        {displayChar}
+                    </span>
+                );
+            })}
+        </h1>
     );
 };
 
 const Block = React.memo(({ color }: { color: string | null }) => {
   if (color === 'clearing') {
     return (
-      <div className="w-full h-full flex items-center justify-center" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="w-1/2 h-1/2 bg-white/80 rounded-full animate-ping" style={{ width: '50%', height: '50%', backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: '9999px', animation: 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="w-1/2 h-1/2 bg-white/80 rounded-full animate-ping" />
       </div>
     );
   }
-
   return (
-    <div className="w-full h-full transition-colors duration-300 p-0.5" style={{ width: '100%', height: '100%', transition: 'background-color 300ms', padding: '2px' }}>
+    <div className="w-full h-full transition-colors duration-300 p-0.5">
       {color && (
           <div 
               className="w-full h-full rounded-sm shadow-inner"
               style={{ 
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: '2px',
                   backgroundColor: color,
                   boxShadow: `0 0 10px ${color}, inset 0 0 5px rgba(255,255,255,0.5)`,
                   filter: 'brightness(1.1)'
@@ -135,18 +91,11 @@ const Block = React.memo(({ color }: { color: string | null }) => {
 
 const GameGrid = React.memo(({ grid }: { grid: (string | null)[][] }) => (
   <div
-    className="grid grid-cols-10 grid-rows-20 bg-glass rounded-lg shadow-2xl"
+    className="grid grid-cols-10 grid-rows-20 bg-black/20 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl"
     style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(10, 1fr)',
       width: 'min(80vw, 320px)',
       height: 'min(160vw, 640px)',
       gridTemplateRows: `repeat(${GRID_HEIGHT}, 1fr)`,
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      backdropFilter: 'blur(12px)',
-      borderRadius: '0.5rem',
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-      border: '1px solid rgba(255, 255, 255, 0.2)'
     }}
   >
     {grid.map((row, y) =>
@@ -419,7 +368,7 @@ const ColorisGame = () => {
       case 'ArrowDown': setIsDropping(true); break;
       case ' ': hardDrop(); break;
     }
-  }, [currentBlock, gameOver, gameStarted, hardDrop]);
+  }, [currentBlock, gameOver, gameStarted, hardDrop]); // Back to original dependencies
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (gameOver || !gameStarted) return;
@@ -448,19 +397,27 @@ const ColorisGame = () => {
   }, [handleKeyDown, handleKeyUp]);
   
   // --- Game State Management ---
-  const startGame = () => {
+  const startGame = useCallback(() => {
     setGrid(createEmptyGrid());
     setScore(0);
     setGameOver(false);
-    setGameStarted(true);
-    setBaseGameSpeed(BASE_GAME_SPEED);
+    setCurrentBlock(null);  // Clear current block first
     setIsDropping(false);
-    // Initialize first and next block
-    const firstBlock = generateNewBlock();
-    const secondBlock = generateNewBlock();
-    setCurrentBlock(firstBlock);
-    setNextBlock(secondBlock);
-  };
+    setBaseGameSpeed(BASE_GAME_SPEED);
+    
+    // Use setTimeout to ensure state updates are processed
+    setTimeout(() => {
+      setGameStarted(true);
+    }, 10);
+    
+    // Initialize blocks after a small delay
+    setTimeout(() => {
+      const firstBlock = generateNewBlock();
+      const secondBlock = generateNewBlock();
+      setCurrentBlock(firstBlock);
+      setNextBlock(secondBlock);
+    }, 20);
+  }, []);
 
   // --- Rendering ---
   const displayGrid = grid.map(row => [...row]);
@@ -476,45 +433,16 @@ const ColorisGame = () => {
 
   return (
     <div 
-        style={{
-            background: 'linear-gradient(135deg, #3730a3, #1e1b4b, #4c1d95)',
-            color: 'white',
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-            fontFamily: 'sans-serif'
-        }}
+      className="bg-gradient-to-br from-indigo-900 via-gray-900 to-purple-900 text-white min-h-screen flex flex-col items-center justify-center p-4 font-sans"
     >
         <WavyTitle 
             text="Coloris" 
-            style={{
-                fontSize: '3.5rem',
-                fontWeight: 'bold',
-                marginBottom: '2rem',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                background: 'linear-gradient(135deg, #ff00ff, #00ffff)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                padding: '0.5rem 2rem',
-                borderRadius: '0.5rem',
-                color: '#ffffff',
-                textShadow: '0 0 5px #8080ff, 0 0 15px rgba(0,128,255,0.4)',
-            }}
+            className="text-5xl font-bold mb-6 tracking-wider uppercase" 
+            style={{textShadow: '0 0 15px rgba(255,255,255,0.5)'}}
         />
         
-        <div style={{
-            display: 'flex',
-            flexDirection: isWideScreen ? 'row' : 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '2rem'
-        }}>
-            <div style={{ position: 'relative' }}>
+        <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+            <div className="relative">
                 <GameGrid grid={displayGrid} />
                 {(!gameStarted || gameOver) && (
                     <div style={{

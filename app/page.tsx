@@ -1,3 +1,5 @@
+"use client";
+
 import ColorisGame from './components/ColorisGame';
 
 export default function Page() {

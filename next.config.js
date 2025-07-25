@@ -6,6 +6,11 @@ const nextConfig = {
   
   // Security headers
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development';
+    const scriptSrc = isDev 
+      ? "'self' 'unsafe-inline' 'unsafe-eval'" 
+      : "'self' 'unsafe-inline'";
+      
     return [
       {
         source: '/:path*',
@@ -24,7 +29,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;",
+            value: `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;`,
           },
         ],
       },
