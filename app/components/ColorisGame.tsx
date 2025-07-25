@@ -104,6 +104,129 @@ const GameGrid = React.memo(({ grid }: { grid: (string | null)[][] }) => (
   </div>
 ));
 
+const TouchControls = ({ 
+  onMoveLeft, 
+  onMoveRight, 
+  onRotate, 
+  onSoftDrop, 
+  onHardDrop,
+  isGameActive 
+}: {
+  onMoveLeft: () => void;
+  onMoveRight: () => void;
+  onRotate: () => void;
+  onSoftDrop: (dropping: boolean) => void;
+  onHardDrop: () => void;
+  isGameActive: boolean;
+}) => {
+  if (!isGameActive) return null;
+
+  const buttonStyle = {
+    padding: '1rem',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderRadius: '0.5rem',
+    color: 'white',
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    userSelect: 'none' as const,
+    touchAction: 'manipulation' as const,
+    minWidth: '60px',
+    minHeight: '60px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  const activeStyle = {
+    ...buttonStyle,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    transform: 'scale(0.95)',
+  };
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '20px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '1rem',
+      zIndex: 1000,
+      pointerEvents: 'auto'
+    }}>
+      {/* Top row - Rotate and Hard Drop */}
+      <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+        <button
+          style={buttonStyle}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            onRotate();
+          }}
+          onClick={onRotate}
+        >
+          ↻
+        </button>
+        <button
+          style={buttonStyle}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            onHardDrop();
+          }}
+          onClick={onHardDrop}
+        >
+          ⬇⬇
+        </button>
+      </div>
+      
+      {/* Bottom row - Movement and Soft Drop */}
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        <button
+          style={buttonStyle}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            onMoveLeft();
+          }}
+          onClick={onMoveLeft}
+        >
+          ←
+        </button>
+        
+        <button
+          style={buttonStyle}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            onSoftDrop(true);
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            onSoftDrop(false);
+          }}
+          onMouseDown={() => onSoftDrop(true)}
+          onMouseUp={() => onSoftDrop(false)}
+          onMouseLeave={() => onSoftDrop(false)}
+        >
+          ↓
+        </button>
+        
+        <button
+          style={buttonStyle}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            onMoveRight();
+          }}
+          onClick={onMoveRight}
+        >
+          →
+        </button>
+      </div>
+    </div>
+  );
+};
+
 type BlockType = {
     x: number;
     y: number;
@@ -170,6 +293,11 @@ const ColorisGame = () => {
   const [baseGameSpeed, setBaseGameSpeed] = useState(BASE_GAME_SPEED);
   const [isDropping, setIsDropping] = useState(false);
   const [isWideScreen, setIsWideScreen] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  
+  // Touch gesture state
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
 
   // --- Core Game Logic ---
 
@@ -377,6 +505,58 @@ const ColorisGame = () => {
     }
   }, [gameOver, gameStarted]);
 
+  // Touch gesture handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!gameStarted || gameOver) return;
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+    setTouchEnd(null);
+  }, [gameStarted, gameOver]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStart) return;
+    const touch = e.touches[0];
+    setTouchEnd({ x: touch.clientX, y: touch.clientY });
+  }, [touchStart]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!touchStart || !touchEnd || !gameStarted || gameOver) {
+      setTouchStart(null);
+      setTouchEnd(null);
+      return;
+    }
+
+    const deltaX = touchEnd.x - touchStart.x;
+    const deltaY = touchEnd.y - touchStart.y;
+    
+    const minSwipeDistance = 50;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
+
+    // Determine swipe direction
+    if (absDeltaX > absDeltaY && absDeltaX > minSwipeDistance) {
+      // Horizontal swipe
+      if (deltaX > 0) {
+        moveBlock(1); // Swipe right
+      } else {
+        moveBlock(-1); // Swipe left
+      }
+    } else if (absDeltaY > absDeltaX && absDeltaY > minSwipeDistance) {
+      // Vertical swipe
+      if (deltaY > 0) {
+        hardDrop(); // Swipe down - hard drop
+      } else {
+        rotateBlock(); // Swipe up - rotate
+      }
+    } else {
+      // Tap (small movement) - rotate
+      rotateBlock();
+    }
+
+    setTouchStart(null);
+    setTouchEnd(null);
+  }, [touchStart, touchEnd, gameStarted, gameOver, moveBlock, rotateBlock, hardDrop]);
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
@@ -385,8 +565,13 @@ const ColorisGame = () => {
       setIsWideScreen(window.innerWidth >= 768);
     };
     
-    // Set initial value
+    const detectTouchDevice = () => {
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    
+    // Set initial values
     handleResize();
+    detectTouchDevice();
     
     window.addEventListener('resize', handleResize);
     return () => {
@@ -442,7 +627,13 @@ const ColorisGame = () => {
         />
         
         <div className="flex flex-col md:flex-row items-center justify-center gap-8">
-            <div className="relative">
+            <div 
+              className="relative"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{ touchAction: 'none' }} // Prevent default touch behaviors
+            >
                 <GameGrid grid={displayGrid} />
                 {(!gameStarted || gameOver) && (
                     <div style={{
@@ -552,30 +743,56 @@ const ColorisGame = () => {
                         textTransform: 'uppercase',
                         letterSpacing: '0.1em'
                     }}>Controls</h3>
-                    <ul style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.5rem',
-                        fontSize: '0.875rem',
-                        color: 'rgb(209, 213, 219)'
-                    }}>
-                        <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>Move</span> 
-                            <span style={{ fontWeight: 'bold', fontSize: '1.125rem', color: '#93c5fd' }}>← →</span>
-                        </li>
-                        <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>Rotate</span> 
-                            <span style={{ fontWeight: 'bold', fontSize: '1.125rem', color: '#93c5fd' }}>↑</span>
-                        </li>
-                        <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>Soft Drop</span> 
-                            <span style={{ fontWeight: 'bold', fontSize: '1.125rem', color: '#93c5fd' }}>↓</span>
-                        </li>
-                        <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>Hard Drop</span> 
-                            <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>Space</span>
-                        </li>
-                    </ul>
+                    {isTouchDevice ? (
+                        <ul style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.5rem',
+                            fontSize: '0.875rem',
+                            color: 'rgb(209, 213, 219)'
+                        }}>
+                            <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Move</span> 
+                                <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>Swipe ← →</span>
+                            </li>
+                            <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Rotate</span> 
+                                <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>Tap / Swipe ↑</span>
+                            </li>
+                            <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Hard Drop</span> 
+                                <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>Swipe ↓</span>
+                            </li>
+                            <li style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)' }}>
+                                Use touch buttons for precise control
+                            </li>
+                        </ul>
+                    ) : (
+                        <ul style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.5rem',
+                            fontSize: '0.875rem',
+                            color: 'rgb(209, 213, 219)'
+                        }}>
+                            <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Move</span> 
+                                <span style={{ fontWeight: 'bold', fontSize: '1.125rem', color: '#93c5fd' }}>← →</span>
+                            </li>
+                            <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Rotate</span> 
+                                <span style={{ fontWeight: 'bold', fontSize: '1.125rem', color: '#93c5fd' }}>↑</span>
+                            </li>
+                            <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Soft Drop</span> 
+                                <span style={{ fontWeight: 'bold', fontSize: '1.125rem', color: '#93c5fd' }}>↓</span>
+                            </li>
+                            <li style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Hard Drop</span> 
+                                <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>Space</span>
+                            </li>
+                        </ul>
+                    )}
                 </div>
                 
                 {/* Copyright footer */}
@@ -591,6 +808,18 @@ const ColorisGame = () => {
                 </div>
             </div>
         </div>
+        
+        {/* Touch Controls for mobile devices */}
+        {isTouchDevice && (
+          <TouchControls
+            onMoveLeft={() => moveBlock(-1)}
+            onMoveRight={() => moveBlock(1)}
+            onRotate={rotateBlock}
+            onSoftDrop={(dropping) => setIsDropping(dropping)}
+            onHardDrop={hardDrop}
+            isGameActive={gameStarted && !gameOver}
+          />
+        )}
     </div>
   );
 };
