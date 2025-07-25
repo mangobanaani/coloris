@@ -1,6 +1,9 @@
 # 🎮 Coloris
+**A modern color-matching puzzle game built with Next.js and React**
 
-<div align="center">
+🎮 **[PLAY LIVE DEMO](https://coloris-dbqe-89t9wwaow-pekkass-projects.vercel.app/)** 🎮
+
+[✨ Play Now](#deployment) | [🎮 Features](#features) | [⚙️ Installation](#installation) | [🧪 Testing](#testing) | [🐳 Docker](#docker) | [🤝 Contributing](#contributing)iv align="center">
   
 ![Coloris Game Banner](./gamescreen.png)
 
@@ -61,6 +64,22 @@ npm run build
 # Start production server
 npm start
 ```
+
+## 🚀 Deployment
+
+### Live Demo
+🎮 **[Play the live game here!](https://coloris-dbqe-89t9wwaow-pekkass-projects.vercel.app/)** 🎮
+
+The game is deployed on Vercel with automatic deployment from the main branch. The deployment includes:
+- ✅ Optimized production build
+- ✅ Server-side rendering (SSR)
+- ✅ Responsive design for all devices
+- ✅ Fast global CDN delivery
+
+### Deploy Your Own
+You can easily deploy your own instance:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mangobanaani/coloris)
 
 ## 🧪 Testing
 
