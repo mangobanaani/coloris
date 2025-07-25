@@ -128,10 +128,16 @@ Project Link: [https://github.com/mangobanaani/coloris](https://github.com/mango
 │   └── server/    # Server-side code
 ```
 
-## Styling
+## 📄 License
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📬 Contact
+
+Project Link: [https://github.com/mangobanaani/coloris](https://github.com/mangobanaani/coloris)
 
 ---
 
-Built with ❤️ using React Router.
+<div align="center">
+  <sub>Built with ❤️ by mangobanaani</sub>
+</div>
