@@ -16,7 +16,7 @@
 
 **A modern color-matching puzzle game built with Next.js and React**
 
-[✨ Play Now](#deployment) | [� Features](#features) | [⚙️ Installation](#installation) | [🧪 Testing](#testing) | [� Docker](#docker) | [🤝 Contributing](#contributing)
+[Play Now](#deployment) | [Installation](#installation) | [Testing](#testing) | [Docker](#docker) | [Contributing](#contributing)
 
 </div>
 
@@ -25,17 +25,6 @@
 <div align="center">
   <img src="./gamescreen.png" alt="Coloris Gameplay" width="90%">
 </div>
-
-## ✨ Features
-
-- 🎨 **Colorful Gameplay** - Match blocks of the same color in a classic tetris-style grid
-- 🌊 **Animated Title** - Beautiful wave effect animation on the game title
-- 🕹️ **Intuitive Controls** - Arrow keys for movement, spacebar for fast drop
-- ⏱️ **Progressive Difficulty** - Game speed increases over time to challenge your skills
-- 📱 **Responsive Design** - Play on desktop or mobile with adaptive layout
-- 🎯 **Score Tracking** - Track your high scores and challenge yourself
-- 🌙 **Modern UI** - Clean, minimalist interface with Tailwind CSS
-- 🚀 **Next.js Performance** - Lightning-fast load times and optimized rendering
 
 ## ⚙️ Installation
 
@@ -65,25 +54,25 @@ npm run build
 npm start
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Live Demo
 🎮 **[Play the live game here!](https://coloris-dbqe-89t9wwaow-pekkass-projects.vercel.app/)** 🎮
 
 The game is deployed on Vercel with automatic deployment from the main branch. The deployment includes:
-- ✅ Optimized production build
-- ✅ Server-side rendering (SSR)
-- ✅ Responsive design for all devices
-- ✅ Fast global CDN delivery
+- Optimized production build
+- Server-side rendering (SSR)
+- Responsive design for all devices
+- Fast global CDN delivery
 
 ### Deploy Your Own
 You can easily deploy your own instance:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/mangobanaani/coloris)
 
-## 🧪 Testing
+## Testing
 
-Coloris includes comprehensive testing using Playwright:
+Coloris includes tiny testing suite using Playwright:
 
 ```bash
 # Run all tests
@@ -96,7 +85,7 @@ npm run test:ui
 npm run test:debug
 ```
 
-## 🐳 Containerization
+## Containerization
 
 Coloris comes with a multi-stage build for efficient container deployment:
 
@@ -112,15 +101,15 @@ podman run -p 3000:3000 coloris
 
 For more details about container deployment, including Kubernetes configurations and other modern alternatives to Docker, see [DOCKER.md](DOCKER.md).
 
-## 🔒 Security
+## Security
 
 Our CI/CD pipeline includes security scanning with:
 
-- 🔍 **CodeQL Analysis** for code quality and security issues
-- 🛡️ **Trivy** for container vulnerability scanning
-- 📦 **npm audit** for dependency vulnerabilities
+- **CodeQL Analysis** for code quality and security issues
+- **Trivy** for container vulnerability scanning
+- **npm audit** for dependency vulnerabilities
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -130,26 +119,15 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📬 Contact
+## Contact
 
 Project Link: [https://github.com/mangobanaani/coloris](https://github.com/mangobanaani/coloris)
 
 ---
-
-<div align="center">
-  <sub>Built with ❤️ by mangobanaani</sub>
-</div>
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 📬 Contact
 
