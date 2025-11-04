@@ -6,13 +6,6 @@ async function waitForGameLoad(page: Page) {
   await page.locator('text=Coloris').first().waitFor({ timeout: 5000 });
 }
 
-// Helper for clicking buttons more reliably
-async function clickButtonWithText(page: Page, text: string) {
-  const button = page.getByText(text, { exact: false }).filter({ has: page.locator('button') }).first();
-  await button.waitFor({ state: 'visible', timeout: 5000 });
-  await button.click({ timeout: 5000 });
-}
-
 test.describe('Coloris Game', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the app with a navigation timeout

@@ -5,26 +5,35 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug"
   },
   "dependencies": {
-    "isbot": "^3.6.13",
-    "next": "^15.5.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "isbot": "^5.1.32",
+    "next": "^16.0.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@eslint/compat": "^1.4.1",
+    "@eslint/js": "^9.39.1",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/forms": "^0.5.7",
-    "@types/node": "^20",
-    "@types/react": "^18.2.35",
-    "@types/react-dom": "^18.2.14",
+    "@tailwindcss/postcss": "^4.1.16",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "autoprefixer": "^10.4.16",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.0.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^16.5.0",
     "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.5",
-    "typescript": "^5.2.2"
+    "tailwindcss": "^4.1.16",
+    "typescript": "^5.2.2",
+    "typescript-eslint": "^8.46.3"
   }
 }

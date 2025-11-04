@@ -1,4 +1,4 @@
-.PHONY: help install dev build start test test-ui test-debug lint clean docker-build docker-run
+.PHONY: help install dev build start test test-ui test-debug lint security clean docker-build docker-run
 
 # Default target
 help:
@@ -12,6 +12,7 @@ help:
 	@echo "  make test-ui        - Run tests with UI"
 	@echo "  make test-debug     - Run tests in debug mode"
 	@echo "  make lint           - Run linter"
+	@echo "  make security       - Run security audit"
 	@echo "  make clean          - Clean build artifacts"
 	@echo "  make docker-build   - Build Docker image"
 	@echo "  make docker-run     - Run Docker container"
@@ -50,6 +51,14 @@ test-debug:
 lint:
 	npm run lint
 
+# Run security audit
+security:
+	@echo "Running npm audit..."
+	npm audit
+	@echo ""
+	@echo "Checking for outdated packages..."
+	npm outdated || true
+
 # Clean build artifacts
 clean:
 	rm -rf .next
@@ -65,6 +74,6 @@ docker-build:
 docker-run:
 	docker run -p 3000:3000 coloris:latest
 
-# Run all checks (lint, build, test)
-all: lint build test
+# Run all checks (lint, security, build, test)
+all: lint security build test
 	@echo "All checks passed!"

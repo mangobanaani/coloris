@@ -88,6 +88,7 @@ const Block = React.memo(({ color }: { color: string | null }) => {
     </div>
   );
 });
+Block.displayName = 'Block';
 
 const GameGrid = React.memo(({ grid }: { grid: (string | null)[][] }) => (
   <div
@@ -103,6 +104,7 @@ const GameGrid = React.memo(({ grid }: { grid: (string | null)[][] }) => (
     )}
   </div>
 ));
+GameGrid.displayName = 'GameGrid';
 
 type BlockType = {
     x: number;
@@ -157,6 +159,7 @@ const NextBlockPreview = React.memo(({ block }: { block: BlockType }) => (
         </div>
     </div>
 ));
+NextBlockPreview.displayName = 'NextBlockPreview';
 
 
 const ColorisGame = () => {
@@ -180,7 +183,7 @@ const ColorisGame = () => {
   // --- Core Game Logic ---
 
   const checkForMatches = useCallback((gridToCheck: (string | null)[][]) => {
-    let newGrid = gridToCheck.map(row => [...row]);
+    const newGrid = gridToCheck.map(row => [...row]);
     const toClear = new Set<string>();
 
     // Vertical check
@@ -216,7 +219,7 @@ const ColorisGame = () => {
             });
         });
 
-        let gridWithClearing = newGrid.map(row => [...row]);
+        const gridWithClearing = newGrid.map(row => [...row]);
         blastZone.forEach(coord => {
             const [y, x] = coord.split(',').map(Number);
             gridWithClearing[y][x] = 'clearing';
@@ -225,7 +228,7 @@ const ColorisGame = () => {
         setScore(prev => prev + blastZone.size * 10);
 
         setTimeout(() => {
-            let gridAfterClear = newGrid.map(row => [...row]);
+            const gridAfterClear = newGrid.map(row => [...row]);
             blastZone.forEach(coord => {
                 const [y, x] = coord.split(',').map(Number);
                 gridAfterClear[y][x] = null;
@@ -343,7 +346,7 @@ const ColorisGame = () => {
     const newBlock = { ...currentBlock, colors: [currentBlock.colors[2], currentBlock.colors[0], currentBlock.colors[1]] };
     if (isValidMove(newBlock, grid)) setCurrentBlock(newBlock);
   };
-  
+
   const hardDrop = () => {
       if (!currentBlock || gameOver) return;
       let finalY = currentBlock.y;
