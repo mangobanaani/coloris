@@ -1,4 +1,4 @@
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 WORKDIR /app
 
 # Dependencies layer - install all dependencies including dev
@@ -16,7 +16,7 @@ ENV NODE_ENV production
 RUN npm run build
 
 # Runner layer - run the application with minimal dependencies
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
