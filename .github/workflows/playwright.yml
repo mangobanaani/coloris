@@ -24,16 +24,8 @@ jobs:
     
     - name: Install Playwright browsers
       run: npx playwright install --with-deps
-    
-    - name: Start Next.js server in background
-      run: |
-        npm run dev &
-        sleep 10 # Give server time to start
-    
-    - name: Check if server is running
-      run: curl -s http://localhost:3000 || (echo "Server not running!" && exit 1)
-    
-    - name: Run Playwright tests with debugging
+
+    - name: Run Playwright tests
       run: npx playwright test --project=chromium --reporter=list
     
     - name: Upload Playwright report
