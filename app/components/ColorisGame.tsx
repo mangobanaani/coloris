@@ -512,8 +512,8 @@ const ColorisGame = () => {
   }
 
   return (
-    <div 
-      className="bg-gradient-to-br from-indigo-900 via-gray-900 to-purple-900 text-white min-h-screen flex flex-col items-center justify-center p-4 font-sans"
+    <div
+      className="bg-linear-to-br from-indigo-900 via-gray-900 to-purple-900 text-white min-h-screen flex flex-col items-center justify-center p-4 font-sans"
     >
         <WavyTitle 
             text="Coloris" 
